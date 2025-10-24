@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Game Launcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        /* Menu principal */
+        #menuScreen {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 40px;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 50px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            display: block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .game-card:nth-child(1) .game-icon { animation-delay: 0s; }
+        .game-card:nth-child(2) .game-icon { animation-delay: 0.2s; }
+        .game-card:nth-child(3) .game-icon { animation-delay: 0.4s; }
+
+        .game-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .game-description {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
+        }
+
+        /* Écran de jeu */
+        #gameScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+        }
+
+        #gameScreen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .game-header h2 {
+            color: white;
+            font-size: 1.5em;
+        }
+
+        .back-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .back-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #gameFrame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #menuScreen {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Principal -->
+        <div id="menuScreen">
+            <h1>🎮 GAME LAUNCHER</h1>
+            <p class="subtitle">Choisissez votre jeu préféré !</p>
+            
+            <div class="games-grid">
+                <div class="game-card" onclick="loadGame('snake')">
+                    <span class="game-icon">🐍</span>
+                    <div class="game-title">SNAKE</div>
+                    <div class="game-description">Mangez et grandissez sans vous mordre !</div>
+                </div>
+
+                <div class="game-card" onclick="loadGame('dino')">
+                    <span class="game-icon">🦖</span>
+                    <div class="game-title">DINO RUNNER</div>
+                    <div class="game-description">Sautez par-dessus les obstacles !</div>
+                </div>
+
+                <div class="game-card" onclick="loadGame('pacman')">
+                    <span class="game-icon">🟡</span>
+                    <div class="game-title">PAC-MAN</div>
+                    <div class="game-description">Mangez tous les points et évitez les fantômes !</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>✨ Créé avec passion | Appuyez sur ESC pour quitter un jeu</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Écran de Jeu -->
+    <div id="gameScreen">
+        <div class="game-header">
+            <h2 id="gameTitle">Jeu en cours...</h2>
+            <button class="back-button" onclick="returnToMenu()">⬅️ Retour au Menu</button>
+        </div>
+        <iframe id="gameFrame"></iframe>
+    </div>
+
+    <script>
+        // Configuration des jeux
+        const games = {
+            snake: {
+                title: '🐍 SNAKE GAME',
+                file: 'index.html'
+            },
+            dino: {
+                title: '🦖 DINO RUNNER',
+                file: 'dino_game.html'
+            },
+            pacman: {
+                title: '🟡 PAC-MAN',
+                file: 'pacman_emoji_fixed.html'
+            }
+        };
+
+        // Charger un jeu
+        function loadGame(gameId) {
+            const game = games[gameId];
+            if (!game) return;
+
+            // Mettre à jour le titre
+            document.getElementById('gameTitle').textContent = game.title;
+            
+            // Charger le jeu dans l'iframe
+            document.getElementById('gameFrame').src = game.file;
+            
+            // Afficher l'écran de jeu
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('menuScreen').style.display = 'none';
+
+            // Jouer un son de démarrage
+            playSound('start');
+        }
+
+        // Retourner au menu
+        function returnToMenu() {
+            // Masquer l'écran de jeu
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('menuScreen').style.display = 'block';
+            
+            // Arrêter le jeu en cours
+            document.getElementById('gameFrame').src = '';
+
+            // Jouer un son
+            playSound('back');
+        }
+
+        // Gestion du clavier (ESC pour quitter)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('gameScreen').classList.contains('active')) {
+                returnToMenu();
+            }
+        });
+
+        // Effets sonores
+        function playSound(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                switch(type) {
+                    case 'start':
+                        oscillator.frequency.value = 400;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.2);
+                        break;
+                    case 'back':
+                        oscillator.frequency.value = 600;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.15);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.15);
+                        break;
+                }
+            } catch(e) {
+                console.log('Audio error:', e);
+            }
+        }
+    </script>
+</body>
+</html>
