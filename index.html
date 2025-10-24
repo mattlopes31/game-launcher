@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu Snake</title>
+    <title>🎮 Game Launcher</title>
     <style>
         * {
             margin: 0;
@@ -12,588 +12,353 @@
         }
 
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Arial', sans-serif;
-            color: white;
+            overflow: hidden;
         }
 
-        .game-container {
+        /* Animated background */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        /* Menu principal */
+        #menuScreen {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 40px;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
+            font-size: 4em;
             margin-bottom: 20px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .stats {
-            display: flex;
-            justify-content: space-around;
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 50px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-icon {
+            font-size: 5em;
             margin-bottom: 20px;
-            gap: 20px;
+            display: block;
+            animation: bounce 2s ease-in-out infinite;
         }
 
-        .stat-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px 25px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
-        .stat-label {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-bottom: 5px;
-        }
+        .game-card:nth-child(1) .game-icon { animation-delay: 0s; }
+        .game-card:nth-child(2) .game-icon { animation-delay: 0.2s; }
+        .game-card:nth-child(3) .game-icon { animation-delay: 0.4s; }
 
-        .stat-value {
+        .game-title {
             font-size: 1.8em;
             font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
         }
 
-        canvas {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            background: #1a1a2e;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        .game-description {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1em;
         }
 
-        .controls {
-            margin-top: 20px;
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 40px 60px;
-            border-radius: 15px;
-            text-align: center;
+        /* Écran de jeu */
+        #gameScreen {
             display: none;
-            z-index: 10;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
         }
 
-        .overlay.active {
-            display: block;
+        #gameScreen.active {
+            display: flex;
+            flex-direction: column;
         }
 
-        .overlay h2 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
+        .game-header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #667eea;
         }
 
-        .overlay p {
-            font-size: 1.2em;
-            margin: 10px 0;
-            opacity: 0.9;
+        .game-header h2 {
+            color: white;
+            font-size: 1.5em;
         }
 
-        .button {
+        .back-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
+            padding: 12px 30px;
+            font-size: 1.1em;
             border-radius: 10px;
             cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            font-weight: bold;
         }
 
-        .button:hover {
+        .back-button:hover {
             transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .sound-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
+        #gameFrame {
+            flex: 1;
             border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #menuScreen {
+                padding: 40px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <button class="sound-toggle" onclick="toggleSound()">🔊 Son: ON</button>
-    
-    <div class="game-container">
-        <h1>🐍 SNAKE GAME</h1>
-        
-        <div class="stats">
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score">0</div>
+    <div class="container">
+        <!-- Menu Principal -->
+        <div id="menuScreen">
+            <h1>🎮 GAME LAUNCHER</h1>
+            <p class="subtitle">Choisissez votre jeu préféré !</p>
+            
+            <div class="games-grid">
+                <div class="game-card" onclick="loadGame('snake')">
+                    <span class="game-icon">🐍</span>
+                    <div class="game-title">SNAKE</div>
+                    <div class="game-description">Mangez et grandissez sans vous mordre !</div>
+                </div>
+
+                <div class="game-card" onclick="loadGame('dino')">
+                    <span class="game-icon">🦖</span>
+                    <div class="game-title">DINO RUNNER</div>
+                    <div class="game-description">Sautez par-dessus les obstacles !</div>
+                </div>
+
+                <div class="game-card" onclick="loadGame('pacman')">
+                    <span class="game-icon">🟡</span>
+                    <div class="game-title">PAC-MAN</div>
+                    <div class="game-description">Mangez tous les points et évitez les fantômes !</div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Meilleur Score</div>
-                <div class="stat-value" id="highScore">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Longueur</div>
-                <div class="stat-value" id="length">3</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Niveau</div>
-                <div class="stat-value" id="level">1</div>
+
+            <div class="footer">
+                <p>✨ Créé avec passion | Appuyez sur ESC pour quitter un jeu</p>
             </div>
         </div>
+    </div>
 
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
-
-        <div class="controls">
-            <p>🎮 Flèches ou WASD pour déplacer | ESPACE pour pause | R pour recommencer</p>
+    <!-- Écran de Jeu -->
+    <div id="gameScreen">
+        <div class="game-header">
+            <h2 id="gameTitle">Jeu en cours...</h2>
+            <button class="back-button" onclick="returnToMenu()">⬅️ Retour au Menu</button>
         </div>
-    </div>
-
-    <div class="overlay" id="startScreen">
-        <h2>🐍 SNAKE GAME</h2>
-        <p>Utilisez les flèches ou WASD pour contrôler le serpent</p>
-        <p>Mangez la nourriture pour grandir</p>
-        <p>Évitez les murs et votre propre corps</p>
-        <button class="button" onclick="startGame()">COMMENCER</button>
-    </div>
-
-    <div class="overlay" id="pauseScreen">
-        <h2>⏸ PAUSE</h2>
-        <p>Appuyez sur ESPACE pour continuer</p>
-    </div>
-
-    <div class="overlay" id="gameOverScreen">
-        <h2>💀 GAME OVER</h2>
-        <p>Score Final: <span id="finalScore">0</span></p>
-        <p>Longueur: <span id="finalLength">0</span></p>
-        <button class="button" onclick="restartGame()">REJOUER</button>
+        <iframe id="gameFrame"></iframe>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Configuration du jeu
-        const GRID_SIZE = 25;
-        const CELL_SIZE = canvas.width / GRID_SIZE;
-        const INITIAL_SPEED = 150;
-        const SPEED_INCREMENT = 10;
-
-        // Variables du jeu
-        let snake = [];
-        let direction = { x: 1, y: 0 };
-        let nextDirection = { x: 1, y: 0 };
-        let food = {};
-        let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
-        let gameLoop = null;
-        let gameSpeed = INITIAL_SPEED;
-        let isPaused = false;
-        let isGameOver = false;
-        let soundEnabled = true;
-
-        // Initialisation
-        document.getElementById('highScore').textContent = highScore;
-        document.getElementById('startScreen').classList.add('active');
-
-        // Contrôles
-        document.addEventListener('keydown', handleKeyPress);
-
-        function handleKeyPress(e) {
-            if (e.key === ' ' || e.key === 'Spacebar') {
-                e.preventDefault();
-                if (!isGameOver && gameLoop) {
-                    togglePause();
-                }
-            } else if (e.key === 'r' || e.key === 'R') {
-                if (isGameOver) {
-                    restartGame();
-                }
-            } else if (!isPaused && !isGameOver) {
-                handleDirectionChange(e.key);
+        // Configuration des jeux
+        const games = {
+            snake: {
+                title: '🐍 SNAKE GAME',
+                file: 'snak.html'
+            },
+            dino: {
+                title: '🦖 DINO RUNNER',
+                file: 'dino_game.html'
+            },
+            pacman: {
+                title: '🟡 PAC-MAN',
+                file: 'pacman_emoji_fixed.html'
             }
+        };
+
+        // Charger un jeu
+        function loadGame(gameId) {
+            const game = games[gameId];
+            if (!game) return;
+
+            // Mettre à jour le titre
+            document.getElementById('gameTitle').textContent = game.title;
+            
+            // Charger le jeu dans l'iframe
+            document.getElementById('gameFrame').src = game.file;
+            
+            // Afficher l'écran de jeu
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('menuScreen').style.display = 'none';
+
+            // Jouer un son de démarrage
+            playSound('start');
         }
 
-        function handleDirectionChange(key) {
-            switch(key) {
-                case 'ArrowUp':
-                case 'w':
-                case 'W':
-                    if (direction.y === 0) nextDirection = { x: 0, y: -1 };
-                    break;
-                case 'ArrowDown':
-                case 's':
-                case 'S':
-                    if (direction.y === 0) nextDirection = { x: 0, y: 1 };
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                case 'A':
-                    if (direction.x === 0) nextDirection = { x: -1, y: 0 };
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                case 'D':
-                    if (direction.x === 0) nextDirection = { x: 1, y: 0 };
-                    break;
+        // Retourner au menu
+        function returnToMenu() {
+            // Masquer l'écran de jeu
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('menuScreen').style.display = 'block';
+            
+            // Arrêter le jeu en cours
+            document.getElementById('gameFrame').src = '';
+
+            // Jouer un son
+            playSound('back');
+        }
+
+        // Gestion du clavier (ESC pour quitter)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('gameScreen').classList.contains('active')) {
+                returnToMenu();
             }
-        }
+        });
 
-        function startGame() {
-            document.getElementById('startScreen').classList.remove('active');
-            initGame();
-            gameLoop = setInterval(update, gameSpeed);
-        }
-
-        function initGame() {
-            snake = [
-                { x: 12, y: 12 },
-                { x: 11, y: 12 },
-                { x: 10, y: 12 }
-            ];
-            direction = { x: 1, y: 0 };
-            nextDirection = { x: 1, y: 0 };
-            score = 0;
-            gameSpeed = INITIAL_SPEED;
-            isPaused = false;
-            isGameOver = false;
-            updateStats();
-            spawnFood();
-        }
-
-        function spawnFood() {
-            do {
-                food = {
-                    x: Math.floor(Math.random() * GRID_SIZE),
-                    y: Math.floor(Math.random() * GRID_SIZE)
-                };
-            } while (snake.some(segment => segment.x === food.x && segment.y === food.y));
-        }
-
-        function update() {
-            if (isPaused || isGameOver) return;
-
-            direction = { ...nextDirection };
-
-            // Nouvelle position de la tête
-            const head = {
-                x: snake[0].x + direction.x,
-                y: snake[0].y + direction.y
-            };
-
-            // Vérifier collision avec les murs
-            if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
-                endGame();
-                return;
-            }
-
-            // Vérifier collision avec soi-même
-            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-                endGame();
-                return;
-            }
-
-            snake.unshift(head);
-
-            // Vérifier si la nourriture est mangée
-            if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                playEatSound();
-                spawnFood();
-                updateStats();
+        // Effets sonores
+        function playSound(type) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
                 
-                // Augmenter la vitesse tous les 50 points
-                if (score % 50 === 0 && gameSpeed > 50) {
-                    gameSpeed = Math.max(50, gameSpeed - SPEED_INCREMENT);
-                    clearInterval(gameLoop);
-                    gameLoop = setInterval(update, gameSpeed);
-                }
-            } else {
-                snake.pop();
-            }
-
-            draw();
-        }
-
-        function draw() {
-            // Fond
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Grille subtile
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * CELL_SIZE, 0);
-                ctx.lineTo(i * CELL_SIZE, canvas.height);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(0, i * CELL_SIZE);
-                ctx.lineTo(canvas.width, i * CELL_SIZE);
-                ctx.stroke();
-            }
-
-            // Dessiner le serpent
-            snake.forEach((segment, index) => {
-                if (index === 0) {
-                    // Tête
-                    ctx.fillStyle = '#4ade80';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#4ade80';
-                } else {
-                    // Corps
-                    ctx.fillStyle = '#22c55e';
-                    ctx.shadowBlur = 5;
-                    ctx.shadowColor = '#22c55e';
-                }
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
                 
-                ctx.fillRect(
-                    segment.x * CELL_SIZE + 1,
-                    segment.y * CELL_SIZE + 1,
-                    CELL_SIZE - 2,
-                    CELL_SIZE - 2
-                );
-            });
-
-            // Dessiner la nourriture
-            ctx.fillStyle = '#ef4444';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#ef4444';
-            ctx.beginPath();
-            ctx.arc(
-                food.x * CELL_SIZE + CELL_SIZE / 2,
-                food.y * CELL_SIZE + CELL_SIZE / 2,
-                CELL_SIZE / 2 - 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-            ctx.shadowBlur = 0;
-        }
-
-        function updateStats() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('length').textContent = snake.length;
-            document.getElementById('level').textContent = Math.floor(score / 50) + 1;
-            
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('snakeHighScore', highScore);
-                document.getElementById('highScore').textContent = highScore;
+                switch(type) {
+                    case 'start':
+                        oscillator.frequency.value = 400;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.2);
+                        break;
+                    case 'back':
+                        oscillator.frequency.value = 600;
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.15);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.15);
+                        break;
+                }
+            } catch(e) {
+                console.log('Audio error:', e);
             }
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                document.getElementById('pauseScreen').classList.add('active');
-            } else {
-                document.getElementById('pauseScreen').classList.remove('active');
-            }
-        }
-
-        function endGame() {
-            isGameOver = true;
-            clearInterval(gameLoop);
-            playGameOverSound();
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('finalLength').textContent = snake.length;
-            document.getElementById('gameOverScreen').classList.add('active');
-        }
-
-        function restartGame() {
-            document.getElementById('gameOverScreen').classList.remove('active');
-            initGame();
-            gameLoop = setInterval(update, gameSpeed);
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const btn = document.querySelector('.sound-toggle');
-            btn.textContent = soundEnabled ? '🔊 Son: ON' : '🔇 Son: OFF';
-        }
-
-        function playEatSound() {
-            if (!soundEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Prout humain bien long et réaliste 💨
-            const duration = 1.2; // Durée totale du son
-            const oscillator1 = audioContext.createOscillator();
-            const oscillator2 = audioContext.createOscillator();
-            const oscillator3 = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            const filter = audioContext.createBiquadFilter();
-            
-            oscillator1.connect(filter);
-            oscillator2.connect(filter);
-            oscillator3.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Types d'ondes pour un son plus réaliste
-            oscillator1.type = 'sawtooth';
-            oscillator2.type = 'square';
-            oscillator3.type = 'triangle';
-            
-            // Filtre passe-bas pour un son plus sourd
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(400, audioContext.currentTime);
-            filter.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + duration);
-            
-            const now = audioContext.currentTime;
-            
-            // Fréquences qui varient pour créer des "vibrations"
-            // Phase 1: Démarrage
-            oscillator1.frequency.setValueAtTime(180, now);
-            oscillator1.frequency.linearRampToValueAtTime(160, now + 0.2);
-            oscillator1.frequency.linearRampToValueAtTime(140, now + 0.4);
-            
-            // Phase 2: Milieu avec vibrations
-            oscillator1.frequency.linearRampToValueAtTime(155, now + 0.5);
-            oscillator1.frequency.linearRampToValueAtTime(135, now + 0.7);
-            oscillator1.frequency.linearRampToValueAtTime(150, now + 0.85);
-            
-            // Phase 3: Fin qui s'affaiblit
-            oscillator1.frequency.exponentialRampToValueAtTime(80, now + duration);
-            
-            // Oscillateur 2 pour les harmoniques
-            oscillator2.frequency.setValueAtTime(90, now);
-            oscillator2.frequency.exponentialRampToValueAtTime(40, now + duration);
-            
-            // Oscillateur 3 pour plus de texture
-            oscillator3.frequency.setValueAtTime(250, now);
-            oscillator3.frequency.exponentialRampToValueAtTime(70, now + duration);
-            
-            // Enveloppe de volume réaliste avec variations
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.05); // Attaque rapide
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.3);   // Volume max
-            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.6);  // Petite baisse
-            gainNode.gain.linearRampToValueAtTime(0.28, now + 0.8);  // Remontée
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration); // Fin progressive
-            
-            oscillator1.start(now);
-            oscillator1.stop(now + duration);
-            oscillator2.start(now);
-            oscillator2.stop(now + duration);
-            oscillator3.start(now + 0.1);
-            oscillator3.stop(now + duration);
-        }
-
-        function playGameOverSound() {
-            if (!soundEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Son de roquette qui explose 🚀💥
-            const duration = 2.5;
-            const now = audioContext.currentTime;
-            
-            // Phase 1: Lancement de la roquette (sifflement ascendant)
-            const rocketOsc = audioContext.createOscillator();
-            const rocketGain = audioContext.createGain();
-            const rocketFilter = audioContext.createBiquadFilter();
-            
-            rocketOsc.connect(rocketFilter);
-            rocketFilter.connect(rocketGain);
-            rocketGain.connect(audioContext.destination);
-            
-            rocketOsc.type = 'sawtooth';
-            rocketFilter.type = 'bandpass';
-            rocketFilter.frequency.setValueAtTime(800, now);
-            rocketFilter.frequency.exponentialRampToValueAtTime(2500, now + 1.2);
-            
-            rocketOsc.frequency.setValueAtTime(300, now);
-            rocketOsc.frequency.exponentialRampToValueAtTime(1800, now + 1.2);
-            
-            rocketGain.gain.setValueAtTime(0.2, now);
-            rocketGain.gain.linearRampToValueAtTime(0.35, now + 0.6);
-            rocketGain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
-            
-            rocketOsc.start(now);
-            rocketOsc.stop(now + 1.2);
-            
-            // Phase 2: EXPLOSION! (bruit blanc avec bass)
-            const explosionDuration = 1.3;
-            const explosionStart = now + 1.2;
-            
-            // Bruit blanc pour l'explosion
-            const bufferSize = audioContext.sampleRate * explosionDuration;
-            const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-            
-            const whiteNoise = audioContext.createBufferSource();
-            whiteNoise.buffer = noiseBuffer;
-            
-            const noiseFilter = audioContext.createBiquadFilter();
-            noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.setValueAtTime(3000, explosionStart);
-            noiseFilter.frequency.exponentialRampToValueAtTime(200, explosionStart + explosionDuration);
-            
-            const noiseGain = audioContext.createGain();
-            noiseGain.gain.setValueAtTime(0.5, explosionStart);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, explosionStart + explosionDuration);
-            
-            whiteNoise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(audioContext.destination);
-            
-            whiteNoise.start(explosionStart);
-            whiteNoise.stop(explosionStart + explosionDuration);
-            
-            // Bass de l'explosion
-            const bassOsc = audioContext.createOscillator();
-            const bassGain = audioContext.createGain();
-            
-            bassOsc.connect(bassGain);
-            bassGain.connect(audioContext.destination);
-            
-            bassOsc.type = 'sine';
-            bassOsc.frequency.setValueAtTime(80, explosionStart);
-            bassOsc.frequency.exponentialRampToValueAtTime(30, explosionStart + 0.5);
-            
-            bassGain.gain.setValueAtTime(0.6, explosionStart);
-            bassGain.gain.exponentialRampToValueAtTime(0.01, explosionStart + 0.8);
-            
-            bassOsc.start(explosionStart);
-            bassOsc.stop(explosionStart + 0.8);
-            
-            // Harmonique de l'explosion
-            const harmOsc = audioContext.createOscillator();
-            const harmGain = audioContext.createGain();
-            
-            harmOsc.connect(harmGain);
-            harmGain.connect(audioContext.destination);
-            
-            harmOsc.type = 'square';
-            harmOsc.frequency.setValueAtTime(150, explosionStart);
-            harmOsc.frequency.exponentialRampToValueAtTime(50, explosionStart + 0.6);
-            
-            harmGain.gain.setValueAtTime(0.3, explosionStart);
-            harmGain.gain.exponentialRampToValueAtTime(0.01, explosionStart + 0.7);
-            
-            harmOsc.start(explosionStart);
-            harmOsc.stop(explosionStart + 0.7);
         }
     </script>
 </body>
