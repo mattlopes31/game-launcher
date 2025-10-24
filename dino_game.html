@@ -127,6 +127,21 @@
             imageLoaded = false;
         };
         
+        // Load Pac-Man image for game over
+        const pacImg = new Image();
+        pacImg.src = 'pac.png'; // Image de Pac-Man pour le game over
+        let pacLoaded = false;
+        
+        pacImg.onload = function() {
+            pacLoaded = true;
+            console.log('Pac-Man image loaded successfully! 🟡');
+        };
+        
+        pacImg.onerror = function() {
+            console.error('⚠️ Erreur: pac.png non trouvé! Utilisez emoji à la place.');
+            pacLoaded = false;
+        };
+        
         // Game constants
         const GRAVITY = 0.6;
         const JUMP_FORCE = -12;
@@ -231,9 +246,22 @@
             ctx.save();
             
             if (gameState === STATE.GAME_OVER) {
-                // Dead state - show skull
-                ctx.fillStyle = '#000';
-                drawText('💀', dino.x, dinoY + 25, 45);
+                // Dead state - show Pac-Man image instead of skull
+                if (pacLoaded) {
+                    // Draw Pac-Man image
+                    const pacSize = 50;
+                    ctx.drawImage(
+                        pacImg,
+                        dino.x - pacSize/2,
+                        dinoY,
+                        pacSize,
+                        pacSize
+                    );
+                } else {
+                    // Fallback to skull emoji if pac.png not loaded
+                    ctx.fillStyle = '#000';
+                    drawText('💀', dino.x, dinoY + 25, 45);
+                }
             } else if (imageLoaded) {
                 // Draw Shrek image
                 const imgWidth = dino.isDucking ? dino.width * 0.8 : dino.width;
