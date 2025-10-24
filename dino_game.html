@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dino Game - T-Rex Runner</title>
+    <title>Shrek Runner Game 🟢</title>
     <style>
         * {
             margin: 0;
@@ -12,13 +12,13 @@
         }
 
         body {
-            background: #f7f7f7;
+            background: #87CEEB;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             font-family: 'Courier New', monospace;
-            color: #535353;
+            color: #2d5016;
         }
 
         #gameContainer {
@@ -26,8 +26,8 @@
         }
 
         #gameCanvas {
-            border: 4px solid #535353;
-            background: #f7f7f7;
+            border: 4px solid #2d5016;
+            background: linear-gradient(180deg, #87CEEB 0%, #90EE90 100%);
             display: block;
             margin: 20px auto;
             cursor: pointer;
@@ -40,18 +40,19 @@
             margin: 0 auto 10px;
             padding: 0 20px;
             font-size: 20px;
-            color: #535353;
+            color: #2d5016;
         }
 
         #score, #highScore {
             font-weight: bold;
             font-size: 24px;
             letter-spacing: 2px;
+            color: #4a7c2d;
         }
 
         #message {
             font-size: 28px;
-            color: #535353;
+            color: #2d5016;
             margin: 20px 0;
             min-height: 40px;
             font-weight: bold;
@@ -59,7 +60,7 @@
 
         #instructions {
             font-size: 14px;
-            color: #888;
+            color: #4a7c2d;
             margin: 10px 0;
         }
 
@@ -81,10 +82,17 @@
         #gameOverScreen.active {
             display: block;
         }
+
+        h1 {
+            color: #2d5016;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
+        <h1>🟢 SHREK RUNNER 🟢</h1>
         <div id="ui">
             <div>HI <span id="highScore">00000</span></div>
             <div><span id="score">00000</span></div>
@@ -104,6 +112,21 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
+        // Load Shrek image
+        const shrekImg = new Image();
+        shrekImg.src = 'shrek.png'; // Assurez-vous que shrek.png est dans le même dossier
+        let imageLoaded = false;
+        
+        shrekImg.onload = function() {
+            imageLoaded = true;
+            console.log('Shrek image loaded successfully! 🟢');
+        };
+        
+        shrekImg.onerror = function() {
+            console.error('⚠️ Erreur: shrek.png non trouvé! Utilisez des emojis à la place.');
+            imageLoaded = false;
+        };
+        
         // Game constants
         const GRAVITY = 0.6;
         const JUMP_FORCE = -12;
@@ -122,20 +145,19 @@
         
         let gameState = STATE.READY;
         let score = 0;
-        let highScore = localStorage.getItem('dinoHighScore') || 0;
+        let highScore = localStorage.getItem('shrekHighScore') || 0;
         let gameSpeed = INITIAL_SPEED;
         let frameCount = 0;
         
-        // Dino
+        // Shrek (remplace dino)
         let dino = {
             x: 50,
             y: GROUND_Y,
-            width: 40,
-            height: 40,
+            width: 50,
+            height: 50,
             velocityY: 0,
             isJumping: false,
             isDucking: false,
-            emoji: '🦖',
             legFrame: 0
         };
         
@@ -185,7 +207,7 @@
         
         // Draw ground
         function drawGround() {
-            ctx.strokeStyle = '#535353';
+            ctx.strokeStyle = '#2d5016';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(0, GROUND_Y + 20);
@@ -201,28 +223,49 @@
             ctx.setLineDash([]);
         }
         
-        // Draw dino (flipped to face right)
+        // Draw Shrek (remplace drawDino)
         function drawDino() {
             const dinoY = dino.y - dino.height;
             
-            // Save context and flip horizontally
+            // Save context
             ctx.save();
-            ctx.translate(dino.x, dinoY + 20);
-            ctx.scale(-1, 1); // Flip horizontally
-            ctx.translate(-dino.x, -(dinoY + 20));
             
             if (gameState === STATE.GAME_OVER) {
-                // Dead dino
-                drawText('💀', dino.x, dinoY + 20, 40);
-            } else if (dino.isDucking) {
-                // Ducking dino (smaller)
-                drawText('🦕', dino.x, dinoY + 30, 35);
+                // Dead state - show skull
+                ctx.fillStyle = '#000';
+                drawText('💀', dino.x, dinoY + 25, 45);
+            } else if (imageLoaded) {
+                // Draw Shrek image
+                const imgWidth = dino.isDucking ? dino.width * 0.8 : dino.width;
+                const imgHeight = dino.isDucking ? dino.height * 0.6 : dino.height;
+                const imgY = dino.isDucking ? dinoY + 15 : dinoY;
+                
+                // Flip horizontally to face right
+                ctx.translate(dino.x + imgWidth/2, imgY + imgHeight/2);
+                ctx.scale(-1, 1);
+                
+                // Draw the image
+                ctx.drawImage(
+                    shrekImg, 
+                    -imgWidth/2, 
+                    -imgHeight/2, 
+                    imgWidth, 
+                    imgHeight
+                );
             } else {
-                // Running/jumping dino with leg animation
-                if (!dino.isJumping && frameCount % 10 < 5) {
-                    drawText('🦖', dino.x, dinoY + 20, 40);
+                // Fallback to emoji if image not loaded
+                ctx.translate(dino.x, dinoY + 20);
+                ctx.scale(-1, 1);
+                ctx.translate(-dino.x, -(dinoY + 20));
+                
+                if (dino.isDucking) {
+                    drawText('🟢', dino.x, dinoY + 30, 35);
                 } else {
-                    drawText('🦎', dino.x, dinoY + 20, 40);
+                    if (!dino.isJumping && frameCount % 10 < 5) {
+                        drawText('🟢', dino.x, dinoY + 20, 45);
+                    } else {
+                        drawText('🟢', dino.x, dinoY + 20, 45);
+                    }
                 }
             }
             
@@ -253,51 +296,46 @@
             
             obstacles.push(obstacle);
             
-            // Calculate next obstacle spawn
-            const gap = Math.floor(Math.random() * (obstacleData.maxGap - obstacleData.minGap)) + obstacleData.minGap;
-            nextObstacleFrame = frameCount + gap;
-        }
-        
-        // Draw obstacles
-        function drawObstacles() {
-            obstacles.forEach(obstacle => {
-                if (obstacle.type === 'BIRD') {
-                    // Animated bird
-                    const wingEmoji = Math.floor(obstacle.wingFrame / 10) % 2 === 0 ? '🦅' : '🦆';
-                    drawText(wingEmoji, obstacle.x, obstacle.y - obstacle.height / 2, obstacle.height);
-                    obstacle.wingFrame++;
-                } else {
-                    drawText(obstacle.emoji, obstacle.x, obstacle.y - obstacle.height / 2, obstacle.height);
-                }
-            });
+            const gap = Math.random() * (obstacleData.maxGap - obstacleData.minGap) + obstacleData.minGap;
+            nextObstacleFrame = frameCount + Math.floor(gap / gameSpeed) * 6;
         }
         
         // Create clouds
         function createInitialClouds() {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
                 clouds.push({
                     x: Math.random() * canvas.width,
-                    y: 20 + Math.random() * 60,
-                    speed: 0.5 + Math.random() * 0.5
+                    y: Math.random() * 80 + 10,
+                    speed: Math.random() * 0.5 + 0.2
                 });
             }
         }
         
         function createCloud() {
-            if (Math.random() < 0.01) {
+            if (Math.random() < 0.01 && clouds.length < 5) {
                 clouds.push({
-                    x: canvas.width,
-                    y: 20 + Math.random() * 60,
-                    speed: 0.5 + Math.random() * 0.5
+                    x: canvas.width + 50,
+                    y: Math.random() * 80 + 10,
+                    speed: Math.random() * 0.5 + 0.2
                 });
             }
         }
         
-        // Draw clouds
         function drawClouds() {
-            ctx.fillStyle = '#d0d0d0';
+            ctx.fillStyle = '#ffffff';
             clouds.forEach(cloud => {
                 drawText('☁️', cloud.x, cloud.y, 30);
+            });
+        }
+        
+        // Draw obstacles
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                const x = obstacle.x;
+                const y = obstacle.y - obstacle.height / 2;
+                
+                ctx.fillStyle = '#fff';
+                drawText(obstacle.emoji, x, y, obstacle.height);
             });
         }
         
@@ -316,28 +354,24 @@
             
             // Update ducking height
             if (dino.isDucking && !dino.isJumping) {
-                dino.height = 25;
+                dino.height = 30;
             } else {
-                dino.height = 40;
+                dino.height = 50;
             }
         }
         
         // Update obstacles
         function updateObstacles() {
-            // Move obstacles
             obstacles.forEach(obstacle => {
                 obstacle.x -= gameSpeed;
             });
             
-            // Remove off-screen obstacles
             obstacles = obstacles.filter(obstacle => obstacle.x > -obstacle.width);
             
-            // Create new obstacles
             if (frameCount >= nextObstacleFrame) {
                 createObstacle();
             }
             
-            // Increase game speed
             if (gameSpeed < MAX_SPEED) {
                 gameSpeed += SPEED_INCREMENT;
             }
@@ -356,9 +390,8 @@
         // Check collisions
         function checkCollisions() {
             for (let obstacle of obstacles) {
-                // Simple rectangle collision with emoji adjustment
-                const dinoLeft = dino.x - 15;
-                const dinoRight = dino.x + 15;
+                const dinoLeft = dino.x - 20;
+                const dinoRight = dino.x + 20;
                 const dinoTop = dino.y - dino.height + 5;
                 const dinoBottom = dino.y - 5;
                 
@@ -385,7 +418,7 @@
                 
                 if (score > highScore) {
                     highScore = score;
-                    localStorage.setItem('dinoHighScore', highScore);
+                    localStorage.setItem('shrekHighScore', highScore);
                     updateHighScore();
                 }
             }
@@ -438,7 +471,11 @@
         
         // Main game loop
         function gameLoop() {
-            ctx.fillStyle = '#f7f7f7';
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#90EE90');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             drawGround();
@@ -457,9 +494,8 @@
                     updateScore();
                 }
             } else if (gameState === STATE.READY) {
-                // Show blinking start message
                 if (frameCount % 30 < 15) {
-                    ctx.fillStyle = '#535353';
+                    ctx.fillStyle = '#2d5016';
                     ctx.font = 'bold 20px Courier New';
                     ctx.textAlign = 'center';
                     ctx.fillText('CLIQUEZ OU APPUYEZ SUR ESPACE', canvas.width / 2, canvas.height / 2);
